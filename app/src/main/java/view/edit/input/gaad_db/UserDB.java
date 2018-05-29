@@ -3,9 +3,13 @@ package view.edit.input.gaad_db;
 import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.provider.BaseColumns;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by hp on 5/28/2018.
@@ -59,17 +63,77 @@ public class UserDB extends SQLiteOpenHelper {
 
     }
 
-    public long insert(UserInfoModel userInfoModel) {
-        ContentValues contentValues = new ContentValues();
+    public long insertAll(UserInfoModel userInfoModel) {
 
-        contentValues.put(UserInfoEntry.COLUMN_NAME, userInfoModel.getUserName());
-        contentValues.put(UserInfoEntry.COLUMN_ADDR, userInfoModel.getUserAddress());
-        contentValues.put(UserInfoEntry.COLUMN_DESG, userInfoModel.getUserDesignation());
-        contentValues.put(UserPhoneEntry.COLUMN_PHN, userInfoModel.getUserContactNumber());
+        long phoneContact = insertContact(userInfoModel);
+
+        if (phoneContact != -1) {
+            ContentValues contentValues = new ContentValues();
+
+            contentValues.put(UserInfoEntry.COLUMN_NAME, userInfoModel.getUserName());
+            contentValues.put(UserInfoEntry.COLUMN_ADDR, userInfoModel.getUserAddress());
+            contentValues.put(UserInfoEntry.COLUMN_DESG, userInfoModel.getUserDesignation());
+
+            SQLiteDatabase sqLiteDatabase = getWritableDatabase();
+            return sqLiteDatabase.insert(UserInfoEntry.TABLE_NAME,
+                    null, contentValues);
+        }
+
+        return phoneContact;
+    }
+
+    public List<UserInfoModel> getAllUsers() {
+
+//        String USER_NAME_WITH_PREFIX = UserInfoEntry.COLUMN_NAME + "." +
+
+        SQLiteDatabase sqLiteDatabase = getReadableDatabase();
+        List<UserInfoModel> userInfoModels = new ArrayList<>();
+
+        String query = "SELECT " + UserPhoneEntry.COLUMN_CON_NAME + ","
+                + UserPhoneEntry.COLUMN_PHN + "," + UserInfoEntry.COLUMN_ADDR
+                + "," + UserInfoEntry.TABLE_NAME + "." + UserInfoEntry._ID
+                + " FROM " + UserInfoEntry.TABLE_NAME + " INNER JOIN "
+                + UserPhoneEntry.TABLE_NAME + " ON "
+                + UserPhoneEntry.TABLE_NAME + "." + UserPhoneEntry.COLUMN_CON_NAME + " = "
+                + UserInfoEntry.TABLE_NAME + "." + UserInfoEntry.COLUMN_NAME;
+
+        Cursor cursor = sqLiteDatabase.rawQuery(query, null);
+
+        if (cursor != null && cursor.moveToFirst()) {
+            do {
+                String userName = cursor.getString(
+                        cursor.getColumnIndexOrThrow(UserPhoneEntry.COLUMN_CON_NAME));
+                String userPhn = cursor.getString(
+                        cursor.getColumnIndexOrThrow(UserPhoneEntry.COLUMN_PHN));
+                String userAddress = cursor.getString(
+                        cursor.getColumnIndexOrThrow(UserInfoEntry.COLUMN_ADDR));
+
+                int id = cursor.getInt(cursor.getColumnIndexOrThrow(UserInfoEntry._ID));
+
+                UserInfoModel userInfoModel = new UserInfoModel()
+                        .setUserName(userName).setUserContactNumber(userPhn)
+                        .setUserAddress(userAddress).setUserId(id);
+
+                userInfoModels.add(userInfoModel);
+            } while (cursor.moveToNext());
+        }
+
+        if (cursor != null) {
+            cursor.close();
+        }
+
+        return userInfoModels;
+    }
+
+    private long insertContact(UserInfoModel userInfoModel) {
 
         SQLiteDatabase sqLiteDatabase = getWritableDatabase();
-        long dbID = sqLiteDatabase.insert(UserInfoEntry.TABLE_NAME, null, contentValues);
 
-        return dbID;
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(UserPhoneEntry.COLUMN_CON_NAME, userInfoModel.getUserName());
+        contentValues.put(UserPhoneEntry.COLUMN_PHN, userInfoModel.getUserContactNumber());
+
+        return sqLiteDatabase.insert(UserPhoneEntry.TABLE_NAME,
+                null, contentValues);
     }
 }

@@ -44,4 +44,15 @@ public class UserInfoModel {
 
     private String userName, userAddress, userDesignation, userContactNumber;
 
+    public int getUserId() {
+        return userId;
+    }
+
+    public UserInfoModel setUserId(int userId) {
+        this.userId = userId;
+        return this;
+    }
+
+    private int userId;
+
 }

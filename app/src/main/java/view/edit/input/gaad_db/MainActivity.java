@@ -1,5 +1,6 @@
 package view.edit.input.gaad_db;
 
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -12,7 +13,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private UserDB userDB;
 
     private EditText editText1, editText2, editText3, editText4;
-    private Button done;
+    private Button done, open;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,7 +26,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         editText4 = findViewById(R.id.editText4);
 
         done = findViewById(R.id.ok);
+        open = findViewById(R.id.open);
+
         done.setOnClickListener(this);
+        open.setOnClickListener(this);
 
         userDB = new UserDB(this);
 
@@ -36,6 +40,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         if (view.getId() == R.id.ok) {
             saveInDB();
+        } else if (view.getId() == R.id.open) {
+            Intent intent = new Intent(this, UserHistory.class);
+            startActivity(intent);
         }
     }
 
@@ -47,7 +54,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         UserInfoModel userInfoModel = new UserInfoModel().setUserName(name)
                 .setUserAddress(address).setUserDesignation(des).setUserContactNumber(contact);
-        long userId = userDB.insert(userInfoModel);
+        long userId = userDB.insertAll(userInfoModel);
         Log.v("MIMO_SAHA", "ID: " + userId);
     }
 }
