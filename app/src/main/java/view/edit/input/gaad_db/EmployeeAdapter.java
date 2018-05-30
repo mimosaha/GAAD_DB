@@ -21,7 +21,7 @@ public class EmployeeAdapter extends RecyclerView.Adapter<EmployeeAdapter.Custom
     private OnItemClick onItemClick;
 
     public interface OnItemClick {
-        void onGetItem(int id);
+        void onGetItem(String id);
     }
 
     public EmployeeAdapter(Context mContext, List<UserInfoModel> employeeModels,
@@ -46,7 +46,7 @@ public class EmployeeAdapter extends RecyclerView.Adapter<EmployeeAdapter.Custom
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                onItemClick.onGetItem(model.getUserId());
+                onItemClick.onGetItem(model.getUserContactNumber());
             }
         });
     }

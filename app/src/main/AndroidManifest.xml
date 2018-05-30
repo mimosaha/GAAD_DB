@@ -17,7 +17,16 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".UserHistory" />
+        <activity android:name=".UserHistory" >
+            <!-- Added intent filter for handling incoming Texts, Single and Multiple Images - Starts here  -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity>
     </application>
 
 </manifest>

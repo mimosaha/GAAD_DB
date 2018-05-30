@@ -1,5 +1,6 @@
 package view.edit.input.gaad_db;
 
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -43,11 +44,31 @@ public class UserHistory extends AppCompatActivity implements EmployeeAdapter.On
     List<UserInfoModel> employeeModels;
 
     @Override
-    public void onGetItem(int id) {
-        Log.v("MIMO_SAHA:: ", "PP: " + id);
+    public void onGetItem(String id) {
+        sendInfo(id);
+//        Log.v("MIMO_SAHA:: ", "PP: " + id);
     }
 
-    public class PullData extends AsyncTask<Void, Void, Void> {
+    private void sendInfo(String id) {
+        Intent intent = getIntent();
+        intent.putExtra("key", id);
+        setResult(RESULT_OK, intent);
+        finish();
+    }
+
+    private void sendData(int id) {
+        Intent sendIntent = new Intent();
+        // Set the action to be performed i.e 'Send Data'
+        sendIntent.setAction(Intent.ACTION_SEND);
+        // Add the text to the intent
+        sendIntent.putExtra(Intent.EXTRA_TEXT, "This is my text to send.");
+        // Set the type of data i.e 'text/plain'
+        sendIntent.setType("text/plain");
+        // Launches the activity; Open 'Text editor' if you set it as default app to handle Text
+        startActivity(sendIntent);
+    }
+
+    private class PullData extends AsyncTask<Void, Void, Void> {
 
         @Override
         protected Void doInBackground(Void... voids) {

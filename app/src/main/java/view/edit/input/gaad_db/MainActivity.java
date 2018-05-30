@@ -14,6 +14,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private EditText editText1, editText2, editText3, editText4;
     private Button done, open;
+    private int REQUEST_USER_HISTORY = 101;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,7 +43,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             saveInDB();
         } else if (view.getId() == R.id.open) {
             Intent intent = new Intent(this, UserHistory.class);
-            startActivity(intent);
+            startActivityForResult(intent, REQUEST_USER_HISTORY);
         }
     }
 
@@ -56,5 +57,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 .setUserAddress(address).setUserDesignation(des).setUserContactNumber(contact);
         long userId = userDB.insertAll(userInfoModel);
         Log.v("MIMO_SAHA", "ID: " + userId);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == REQUEST_USER_HISTORY && data != null) {
+            String id = data.getStringExtra("key");
+        }
     }
 }
