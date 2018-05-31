@@ -27,6 +27,13 @@
                 <data android:mimeType="text/plain" />
             </intent-filter>
         </activity>
+        
+        <provider
+            android:authorities="view.edit.input.gaad_db"
+            android:name="view.edit.input.gaad_db.UserInfoContentProvider"
+            android:exported="true"
+            android:enabled="true"
+            android:multiprocess="true" />
     </application>
 
 </manifest>

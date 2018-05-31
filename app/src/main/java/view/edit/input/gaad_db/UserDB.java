@@ -82,12 +82,9 @@ public class UserDB extends SQLiteOpenHelper {
         return phoneContact;
     }
 
-    public List<UserInfoModel> getAllUsers() {
-
-//        String USER_NAME_WITH_PREFIX = UserInfoEntry.COLUMN_NAME + "." +
+    Cursor getAllUserCursor() {
 
         SQLiteDatabase sqLiteDatabase = getReadableDatabase();
-        List<UserInfoModel> userInfoModels = new ArrayList<>();
 
         String query = "SELECT " + UserPhoneEntry.COLUMN_CON_NAME + ","
                 + UserPhoneEntry.COLUMN_PHN + "," + UserInfoEntry.COLUMN_ADDR
@@ -97,7 +94,14 @@ public class UserDB extends SQLiteOpenHelper {
                 + UserPhoneEntry.TABLE_NAME + "." + UserPhoneEntry.COLUMN_CON_NAME + " = "
                 + UserInfoEntry.TABLE_NAME + "." + UserInfoEntry.COLUMN_NAME;
 
-        Cursor cursor = sqLiteDatabase.rawQuery(query, null);
+        return sqLiteDatabase.rawQuery(query, null);
+    }
+
+    List<UserInfoModel> getAllUsers() {
+
+        List<UserInfoModel> userInfoModels = new ArrayList<>();
+
+        Cursor cursor = getAllUserCursor();
 
         if (cursor != null && cursor.moveToFirst()) {
             do {
@@ -123,6 +127,39 @@ public class UserDB extends SQLiteOpenHelper {
         }
 
         return userInfoModels;
+    }
+
+    public long insert(UserInfoModel userInfoModel) {
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(UserPhoneEntry.COLUMN_CON_NAME, userInfoModel.getUserName());
+        contentValues.put(UserPhoneEntry.COLUMN_PHN, userInfoModel.getUserContactNumber());
+
+        contentValues.put(UserInfoEntry.COLUMN_NAME, userInfoModel.getUserName());
+        contentValues.put(UserInfoEntry.COLUMN_ADDR, userInfoModel.getUserAddress());
+        contentValues.put(UserInfoEntry.COLUMN_DESG, userInfoModel.getUserDesignation());
+
+        return insertOperation(contentValues);
+    }
+
+    public long insertOperation(ContentValues contentValues) {
+        SQLiteDatabase sqLiteDatabase = getWritableDatabase();
+        long contactId = sqLiteDatabase.insert(UserPhoneEntry.TABLE_NAME,
+                null, contentValues);
+
+        if (contactId != -1) {
+            return sqLiteDatabase.insert(UserInfoEntry.TABLE_NAME,
+                    null, contentValues);
+        }
+
+        return contactId;
+    }
+
+    public int update(ContentValues contentValues, String s, String[] strings) {
+        return 0;
+    }
+
+    public int delete(String whereClause, String[] whereValues) {
+        return 0;
     }
 
     private long insertContact(UserInfoModel userInfoModel) {
