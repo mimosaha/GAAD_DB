@@ -20,8 +20,8 @@ public class UserInfoContentProvider extends ContentProvider {
     private static final String PATH_ALL_CONTACTS = "PATH_ALL_CONTACTS";
     private static final String PATH_CONTACTS = "PATH_CONTACTS";
 
-    private static final String MIME_TYPE_ALL_CONTACT = ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + "vnd.com.contentprovider.allcontact";
-    private static final String MIME_TYPE_CONTACT = ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + "vnd.com.contentprovider.contact";
+    private static final String MIME_TYPE_ALL_CONTACT = ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + "vnd." + AUTHORITY + ".usercontacts";
+    private static final String MIME_TYPE_CONTACT = ContentResolver.CURSOR_ITEM_BASE_TYPE + "/" + "vnd." + AUTHORITY + ".usercontacts.contacts";
 
     private static final int USER_ALL_CONTACT = 1;
     private static final int USER_CONTACT = 2;
@@ -108,9 +108,33 @@ public class UserInfoContentProvider extends ContentProvider {
     }
 
     private Uri insertToDo(Uri uri, ContentValues contentValues) {
-        long id = userDB.insertOperation(contentValues);
-        getContext().getContentResolver().notifyChange(uri, null);
-        return Uri.parse("content://" + AUTHORITY + "/" + PATH_CONTACTS + "/" + id);
+
+        ContentValues contactContent = new ContentValues();
+        contactContent.put(UserDB.UserPhoneEntry.COLUMN_CON_NAME,
+                contentValues.getAsString(UserDB.UserPhoneEntry.COLUMN_CON_NAME));
+        contactContent.put(UserDB.UserPhoneEntry.COLUMN_PHN,
+                contentValues.getAsString(UserDB.UserPhoneEntry.COLUMN_PHN));
+
+        long contactID = userDB.insertContactOperation(contactContent);
+
+        if (contactID != -1) {
+            ContentValues userContent = new ContentValues();
+            userContent.put(UserDB.UserInfoEntry.COLUMN_NAME,
+                    contentValues.getAsString(UserDB.UserInfoEntry.COLUMN_NAME));
+            userContent.put(UserDB.UserInfoEntry.COLUMN_DESG,
+                    contentValues.getAsString(UserDB.UserInfoEntry.COLUMN_DESG));
+            userContent.put(UserDB.UserInfoEntry.COLUMN_ADDR,
+                    contentValues.getAsString(UserDB.UserInfoEntry.COLUMN_ADDR));
+
+            long userID = userDB.insertUserOperation(userContent);
+
+            getContext().getContentResolver().notifyChange(uri, null);
+            return Uri.parse("content://" + AUTHORITY + "/" + PATH_CONTACTS + "/" + userID);
+        }
+
+//        long id = userDB.insertOperation(contentValues);
+//        getContext().getContentResolver().notifyChange(uri, null);
+        return Uri.parse("content://" + AUTHORITY + "/" + PATH_CONTACTS + "/" + -1);
     }
 
     private int update(ContentValues contentValues, String whereCluase, String[] strings) {

@@ -7,6 +7,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.provider.BaseColumns;
+import android.text.TextUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +21,7 @@ public class UserDB extends SQLiteOpenHelper {
     static final int DB_VERSION = 1;
     static final String DB_NAME = "user_db";
 
-    public class UserInfoEntry implements BaseColumns {
+    public static class UserInfoEntry implements BaseColumns {
         static final String TABLE_NAME = "UserInfo";
 
         static final String COLUMN_NAME = "User_Name";
@@ -28,12 +29,13 @@ public class UserDB extends SQLiteOpenHelper {
         static final String COLUMN_DESG = "User_Designation";
     }
 
-    private class UserPhoneEntry implements BaseColumns {
+    public class UserPhoneEntry implements BaseColumns {
         static final String TABLE_NAME = "UserPhone";
 
         static final String COLUMN_CON_NAME = "User_Con_Name";
         static final String COLUMN_PHN = "User_Phone";
     }
+
 
     private String CREATE_USER_INFO_TABLE = "CREATE TABLE " + UserInfoEntry.TABLE_NAME +
             " (" + UserInfoEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
@@ -74,9 +76,8 @@ public class UserDB extends SQLiteOpenHelper {
             contentValues.put(UserInfoEntry.COLUMN_ADDR, userInfoModel.getUserAddress());
             contentValues.put(UserInfoEntry.COLUMN_DESG, userInfoModel.getUserDesignation());
 
-            SQLiteDatabase sqLiteDatabase = getWritableDatabase();
-            return sqLiteDatabase.insert(UserInfoEntry.TABLE_NAME,
-                    null, contentValues);
+
+            return insertUserOperation(contentValues);
         }
 
         return phoneContact;
@@ -129,48 +130,89 @@ public class UserDB extends SQLiteOpenHelper {
         return userInfoModels;
     }
 
-    public long insert(UserInfoModel userInfoModel) {
-        ContentValues contentValues = new ContentValues();
-        contentValues.put(UserPhoneEntry.COLUMN_CON_NAME, userInfoModel.getUserName());
-        contentValues.put(UserPhoneEntry.COLUMN_PHN, userInfoModel.getUserContactNumber());
-
-        contentValues.put(UserInfoEntry.COLUMN_NAME, userInfoModel.getUserName());
-        contentValues.put(UserInfoEntry.COLUMN_ADDR, userInfoModel.getUserAddress());
-        contentValues.put(UserInfoEntry.COLUMN_DESG, userInfoModel.getUserDesignation());
-
-        return insertOperation(contentValues);
+    public long insertContactOperation(ContentValues contentValues) {
+        SQLiteDatabase sqLiteDatabase = getWritableDatabase();
+        return sqLiteDatabase.insert(UserPhoneEntry.TABLE_NAME,
+                null, contentValues);
     }
 
-    public long insertOperation(ContentValues contentValues) {
+    public long insertUserOperation(ContentValues contentValues) {
         SQLiteDatabase sqLiteDatabase = getWritableDatabase();
-        long contactId = sqLiteDatabase.insert(UserPhoneEntry.TABLE_NAME,
+        return sqLiteDatabase.insert(UserInfoEntry.TABLE_NAME,
                 null, contentValues);
+    }
 
-        if (contactId != -1) {
-            return sqLiteDatabase.insert(UserInfoEntry.TABLE_NAME,
-                    null, contentValues);
+    public int update(ContentValues contentValues, String where, String[] args) {
+
+        int updateContact = updateContact(contentValues, where, args);
+
+        if (updateContact > 0) {
+            where = UserInfoEntry.COLUMN_NAME + "=?";
+            return updateUserInfo(contentValues, where, args);
         }
 
-        return contactId;
-    }
-
-    public int update(ContentValues contentValues, String s, String[] strings) {
         return 0;
     }
 
+    private int updateContact(ContentValues contentValues, String where, String[] args) {
+
+        SQLiteDatabase sqLiteDatabase = getWritableDatabase();
+
+        ContentValues updateContentValues = new ContentValues();
+        getDesireContentValues(updateContentValues, UserPhoneEntry.COLUMN_CON_NAME,
+                contentValues.getAsString(UserPhoneEntry.COLUMN_CON_NAME));
+        getDesireContentValues(updateContentValues, UserPhoneEntry.COLUMN_PHN,
+                contentValues.getAsString(UserPhoneEntry.COLUMN_PHN));
+
+        return sqLiteDatabase.update(UserPhoneEntry.TABLE_NAME, updateContentValues, where, args);
+
+    }
+
+    private int updateUserInfo(ContentValues contentValues, String where, String[] args) {
+
+        SQLiteDatabase sqLiteDatabase = getWritableDatabase();
+
+
+        ContentValues userContent = new ContentValues();
+        getDesireContentValues(userContent, UserInfoEntry.COLUMN_NAME,
+                contentValues.getAsString(UserInfoEntry.COLUMN_NAME));
+        getDesireContentValues(userContent, UserInfoEntry.COLUMN_DESG,
+                contentValues.getAsString(UserInfoEntry.COLUMN_DESG));
+        getDesireContentValues(userContent, UserInfoEntry.COLUMN_ADDR,
+                contentValues.getAsString(UserInfoEntry.COLUMN_ADDR));
+
+        return sqLiteDatabase.update(UserInfoEntry.TABLE_NAME, userContent, where, args);
+
+    }
+
+    private ContentValues getDesireContentValues(ContentValues contentValues,
+                                                 String key, String value) {
+
+        if (!TextUtils.isEmpty(value)) {
+            contentValues.put(key, value);
+        }
+        return contentValues;
+    }
+
     public int delete(String whereClause, String[] whereValues) {
+        SQLiteDatabase sqLiteDatabase = getWritableDatabase();
+        int deleteContact = sqLiteDatabase.delete(UserPhoneEntry.TABLE_NAME,
+                whereClause, whereValues);
+
+        if (deleteContact > 0) {
+            whereClause = UserInfoEntry.COLUMN_NAME + "=?";
+            return sqLiteDatabase.delete(UserInfoEntry.TABLE_NAME, whereClause, whereValues);
+        }
+
         return 0;
     }
 
     private long insertContact(UserInfoModel userInfoModel) {
 
-        SQLiteDatabase sqLiteDatabase = getWritableDatabase();
-
         ContentValues contentValues = new ContentValues();
         contentValues.put(UserPhoneEntry.COLUMN_CON_NAME, userInfoModel.getUserName());
         contentValues.put(UserPhoneEntry.COLUMN_PHN, userInfoModel.getUserContactNumber());
 
-        return sqLiteDatabase.insert(UserPhoneEntry.TABLE_NAME,
-                null, contentValues);
+        return insertContactOperation(contentValues);
     }
 }
